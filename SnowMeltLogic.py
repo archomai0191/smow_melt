@@ -54,8 +54,9 @@ def getL(bass_id): #поиск залесенности
     sheet = workbook.sheet_by_index(0)
     i = 1
     #поиск нужного бассейна
-    while(sheet.cell_value(rowx = i, colx = 0)!= '' and 
+    while(i < sheet.nrows and sheet.cell_value(rowx = i, colx = 0)!= '' and 
         int(sheet.cell_value(rowx = i, colx = 0)) != bass_id): i += 1
+    if i >= sheet.nrows: raise Exception("Нет данных по залесенности")
     st = sheet.cell_value(rowx = i, colx = 3)
     if st == '' or float(st) == -999: raise Exception("Нет данных по залесенности")
     return float(st)
@@ -66,8 +67,9 @@ def getFileName(station_id): #поиск файла метеостанции
     workbook = xlrd.open_workbook(app_folder + "/abd/meteostation_1000.xls")
     sheet = workbook.sheet_by_index(0)
     i = 1
-    while(sheet.cell_value(rowx = i, colx = 0)!= '' and 
+    while(i < sheet.nrows and sheet.cell_value(rowx = i, colx = 0)!= '' and 
         int(sheet.cell_value(rowx = i, colx = 0)) != station_id): i += 1
+    if i >= sheet.nrows: raise Exception("Нет данных о метеостанции")
     height = float(sheet.cell_value(rowx = i, colx = 3))
     return sheet.cell_value(rowx = i, colx = 2).strip(), height
 
