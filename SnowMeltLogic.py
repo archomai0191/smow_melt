@@ -56,7 +56,7 @@ def getL(bass_id): #поиск залесенности
     #поиск нужного бассейна
     while(i < sheet.nrows and sheet.cell_value(rowx = i, colx = 0)!= '' and 
         int(sheet.cell_value(rowx = i, colx = 0)) != bass_id): i += 1
-    if i >= sheet.nrows: raise Exception("Нет данных по залесенности")
+    if i >= sheet.nrows: raise Exception("Бассейн не найден")
     st = sheet.cell_value(rowx = i, colx = 3)
     if st == '' or float(st) == -999: raise Exception("Нет данных по залесенности")
     return float(st)
@@ -69,7 +69,7 @@ def getFileName(station_id): #поиск файла метеостанции
     i = 1
     while(i < sheet.nrows and sheet.cell_value(rowx = i, colx = 0)!= '' and 
         int(sheet.cell_value(rowx = i, colx = 0)) != station_id): i += 1
-    if i >= sheet.nrows: raise Exception("Нет данных о метеостанции")
+    if i >= sheet.nrows: raise Exception("Файл метеостанции не найден")
     height = float(sheet.cell_value(rowx = i, colx = 3))
     return sheet.cell_value(rowx = i, colx = 2).strip(), height
 
@@ -113,9 +113,9 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
             while StartR < sheet.nrows and sheet.cell_value(rowx = StartR, colx = 2) != "": StartR += 1
             StartR += 1
             if StartR < sheet.nrows: Date = dateFromXls(sheet, StartR, 1)
-    if StartR >= sheet.nrows: return
+    if StartR >= sheet.nrows: raise Exception("Данных для введенного промежутка нет")
 
-    while sheet.cell_value(rowx = StartR, colx = 2) != "" and \
+    while StartR < sheet.nrows and sheet.cell_value(rowx = StartR, colx = 2) != "" and \
         dt.datetime.strptime(dateFromXls(sheet, StartR, 1), "%d.%m.%Y") \
         <= dt.datetime.strptime(data.eTime, "%d.%m.%Y"):
             row = StartR + 1
@@ -168,7 +168,7 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
             DataMaxL = dateFromXls(sheet3, row3, 3)
 
             #считывание данных из файлов
-            while flag != "":
+            while row < sheet.nrows and flag != "":
                 if str(sheet2.cell_value(row + sdvig, 1)).strip() !='' :
                     InputMas[row-StartR].temp = sheet2.cell_value(row + sdvig, 1)
                 else: InputMas[row-StartR].temp = -999
@@ -179,7 +179,7 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
 
                 InputMas[row-StartR].time = dateFromXls(sheet, row, 2)
                 row += 1
-                flag = str(sheet.cell_value(row, 2)).strip()
+                if row < sheet.nrows: flag = str(sheet.cell_value(row, 2)).strip()
             RecCount = row - StartR - 2
             StartR = row + 1
             #выполнение расчета
@@ -270,7 +270,7 @@ def run(data): #инициализация расчетов
         les_dbf.close()
 
 def calc(height, data): #выполнение расчета
-    global CountDay, CountDayP, CountDayL, station_height, exp, RecCount, fl, Spmax, Slmax, DataMaxP, DataMaxL, l
+    global CountDay, CountDayP, CountDayL, station_height, exsp, RecCount, fl, Spmax, Slmax, DataMaxP, DataMaxL, l
     i = CountDay = CountDayP = CountDayL = 0
     dSl = dSlN = Sl = Slmaxr = dSp = dSpN = Hl = LamL = alfL = SumT = Tp_ = Tp = LamP = Spmaxr = Hp = Sp = SumX = alfP = 0.0
     OldDay = InputMas[i].time
@@ -333,7 +333,7 @@ def calc(height, data): #выполнение расчета
 
             Sp += PrMas[i].XmmT * (1 - l)
             if FlagTp: dSp = Sp *(1 - l)
-            if Tp >= 0.2 * Spmaxr / 5: #проверка, началось ли таяние
+            if Tp >= 0.2 * Spmaxr / data.wEqField: #проверка, началось ли таяние
                 if FlagTp:
                     dSpN = dSp
                     FlagTp = False
@@ -344,7 +344,7 @@ def calc(height, data): #выполнение расчета
                 Hp = LamP * alfP * PrMas[i].temp + PrMas[i].XmmW * (1-l)
                 Hp = salH(Hp, data)
                 if Hp < 0: Hp = 0
-                if dSp > 0 and Tp >= 0.2 * Spmaxr / 5 and alfP != 0:
+                if dSp > 0 and Tp >= 0.2 * Spmaxr / data.wEqField and alfP != 0:
                     #запись данных в массив результатов
                     ResP[CountDayP].time  = PrMas[i].time
                     if dSp-Hp <0:ResP[CountDayP].Xmm  = dSp
@@ -392,7 +392,7 @@ def calc(height, data): #выполнение расчета
             if (Tp+Tp_) < 0: Tp  = 0
             Sl  = Sl+PrMas[i].XmmT*l
             if FlagTp: dSl  = Sl*l
-            if Tp >=(0.3*Slmaxr/2):
+            if Tp >=(0.3*Slmaxr/data.wEqForest):
                 if FlagTp:
                     dSlN  = dSl
                     FlagTp  = False
@@ -402,7 +402,7 @@ def calc(height, data): #выполнение расчета
                 Hl =  LamL*alfL*PrMas[i].temp+PrMas[i].XmmW*l
                 Hl  = salH(Hl, data)
                 if Hl<0: Hl  = 0
-                if (dSl>0) and (Tp >=(0.3*Slmaxr/2)) and (alfL!=0):
+                if (dSl>0) and (Tp >=(0.3*Slmaxr/data.wEqForest)) and (alfL!=0):
                     ResL[CountDayL].time  = PrMas[i].time
                     if (dSl-Hl)<0: ResL[CountDayL].Xmm  = dSl
                     else: ResL[CountDayL].Xmm  = Hl
@@ -458,9 +458,9 @@ def alpha (sumT, sMax, L, flagPole): #вычисление коэффициен�
 
 def salH (h, data): #пересчет слоя стаявшего снега с учетом поправочных коэф-тов по экспозиции
     if data.eCheck:
-        if exp == 1: h *= data.nCoef
-        if exp == 2: h *= data.eCoef
-        if exp == 3: h *= data.sCoef
-        if exp == 4: h *= data.wCoef
-        if exp == -1: h *= data.pCoef
+        if exsp == 1: h *= data.nCoef
+        if exsp == 2: h *= data.eCoef
+        if exsp == 3: h *= data.sCoef
+        if exsp == 4: h *= data.wCoef
+        if exsp == -1: h *= data.pCoef
     return h
