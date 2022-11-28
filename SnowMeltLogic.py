@@ -1,3 +1,4 @@
+from math import floor
 import os, dbf, shutil, numpy, RecordClasses as rc, xlrd, datetime as dt, numpy as np
 from tkinter.messagebox import showinfo
 
@@ -170,14 +171,14 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
             #считывание данных из файлов
             while row < sheet.nrows and flag != "":
                 if str(sheet2.cell_value(row + sdvig, 1)).strip() !='' :
-                    InputMas[row-StartR].temp = sheet2.cell_value(row + sdvig, 1)
-                else: InputMas[row-StartR].temp = -999
+                    InputMas[row-StartR-1].temp = sheet2.cell_value(row + sdvig, 1)
+                else: InputMas[row-StartR-1].temp = -999
 
                 if str(sheet.cell_value(row, 0)).strip() != "": 
-                    InputMas[row-StartR].osadki = sheet.cell_value(row, 0)
-                else: InputMas[row-StartR].osadki = -999
+                    InputMas[row-StartR-1].osadki = sheet.cell_value(row, 0)
+                else: InputMas[row-StartR-1].osadki = -999
 
-                InputMas[row-StartR].time = dateFromXls(sheet, row, 2)
+                InputMas[row-StartR-1].time = dateFromXls(sheet, row, 2)
                 row += 1
                 if row < sheet.nrows: flag = str(sheet.cell_value(row, 2)).strip()
             RecCount = row - StartR - 2
@@ -186,7 +187,7 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
             calc(height, data)
 
             #запись результатов в массив за все года (поле)
-            for i in range (1, CountDayP):
+            for i in range (0, CountDayP):
                 AllCountDayP += 1
                 AllResP[AllCountDayP].time = ResP[i].time
                 AllResP[AllCountDayP].Xmm = ResP[i].Xmm
@@ -195,7 +196,7 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
                 AllResP[AllCountDayP].dS = ResP[i].dS
 
             #запись результатов в массив за все года (лес)
-            for i in range (1, CountDayL):
+            for i in range (0, CountDayL):
                 AllCountDayL += 1
                 AllResL[AllCountDayL].time = ResL[i].time
                 AllResL[AllCountDayL].Xmm = ResL[i].Xmm
@@ -205,13 +206,21 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
 
 def exportGroup(code, les, pole): #запись результата в файлы
     if fl == 1: #лес
-        for i in range(1, AllCountDayL + 1):
+        for i in range(1, AllCountDayL):
+            AllResL[i].Sproc = round(AllResL[i].Sproc, 4);
+            AllResL[i].Xmm = round(AllResL[i].Xmm, 4);
+            AllResL[i].dS = round(AllResL[i].dS, 4);
+            AllResL[i].Smax = round(AllResL[i].Smax, 4);
             rec = (code, AllResL[i].time, AllResL[i].Xmm, AllResL[i].Smax, AllResL[i].Sproc, AllResL[i].dS, 
                     code.strip() + "_" + AllResL[i].time)
             les.append(rec)
     
     if fl == 0: #поле
         for i in range(1, AllCountDayP + 1):
+            AllResP[i].Sproc = round(AllResP[i].Sproc, 4);
+            AllResP[i].Xmm = round(AllResP[i].Xmm, 4);
+            AllResP[i].dS = round(AllResP[i].dS, 4);
+            AllResP[i].Smax = round(AllResP[i].Smax, 4);
             rec = (code, AllResP[i].time, AllResP[i].Xmm, AllResP[i].Smax, AllResP[i].Sproc, AllResP[i].dS, 
                     code.strip() + "_" + AllResP[i].time)
             pole.append(rec)
@@ -294,7 +303,7 @@ def calc(height, data): #выполнение расчета
         nOs = nOs if nOs != 0 else 1
         nT = nT if nT != 0 else 1
         PrMas[CountDay].time = OldDay
-        PrMas[CountDay].XmmW = SumX * (4.9204 * SumT + 34.601) / 100
+        PrMas[CountDay].XmmW = SumX * (4.9204 * SumT + 34.601) / 100.0
         if PrMas[CountDay].XmmW < 0: PrMas[CountDay].XmmW = 0
         if PrMas[CountDay].XmmW > SumX: PrMas[CountDay].XmmW = SumX
         PrMas[CountDay].XmmT = (SumX) - PrMas[CountDay].XmmW
@@ -313,10 +322,10 @@ def calc(height, data): #выполнение расчета
         FlagTp = True
         Tp = 0
         Tp_ = 0
-        CountDayP = 1
+        CountDayP = 0
         Tp = 0 #сумма положительных температур
         Tp_ = 0 #сумма отрицательных температур
-        ifest = 1
+        ifest = 0
         
         while PrMas[ifest].time != DataMaxP and ifest <= CountDay: #поиск даты максимального снегозапаса
             writeToResP((1-l) * Spmaxr, (1-l) * Spmaxr, 100, 0, PrMas[ifest].time, CountDayP)
@@ -359,7 +368,7 @@ def calc(height, data): #выполнение расчета
                         writeToResP((1 - l)*Spmaxr, 0, 0, 0, PrMas[i].time, CountDayP)
                         CountDayP  = CountDayP+1
                 if Hp> PrMas[i].XmmW * (1-l): Hp  = Hp-PrMas[i].XmmT*(1-l)
-                dSp  = dSp-Hp+PrMas[i].XmmT*(1-l)
+                dSp += round(-Hp+PrMas[i].XmmT*(1-l), 14)
 
             else:
                 if not FlagTp: writeToResP((1-l)*Spmaxr, dSp, dSp/dSpN*100, 0, PrMas[i].time, CountDayP)
@@ -373,10 +382,10 @@ def calc(height, data): #выполнение расчета
         alfL  = 1.23
         LamL  = 1.43
         FlagTp  = True
-        CountDayL  = 1
+        CountDayL  = 0
         Tp  = 0
         Tp_  = 0
-        ifest  = 1
+        ifest  = 0
 
         while PrMas[ifest].time != DataMaxL and ifest <= CountDay: 
             writeToResL(l*Slmaxr, l*Slmaxr, 100, 0, PrMas[ifest].time, CountDayL)
@@ -421,10 +430,10 @@ def calc(height, data): #выполнение расчета
                 CountDayL  = CountDayL+1
 
 def salSlMax(slMax, height, data): #пересчет максимального снегозапаса с учетом поправочных коэф-тов по высоте для поля
-    return data.forestCoef * (height - station_height) + slMax if data.hThresh <= height and data.eCheck else slMax
+    return data.forestCoef * (height - station_height) + slMax if data.hThresh <= height and data.hCheck else slMax
 
 def salSpMax(spMax, height, data): #пересчет максимального снегозапаса с учетом попроавочных коэф-тов по высоте для леса
-    return data.fieldCoef * (height - station_height) + spMax if data.hThresh <= height and data.eCheck else spMax
+    return data.fieldCoef * (height - station_height) + spMax if data.hThresh <= height and data.hCheck else spMax
 
 def writeToResL(Smax, dS, Sproc, Xmm, time, CountDayl): #запись в массив ResL
     ResL[CountDayl].Smax = Smax
@@ -459,8 +468,8 @@ def alpha (sumT, sMax, L, flagPole): #вычисление коэффициен�
 def salH (h, data): #пересчет слоя стаявшего снега с учетом поправочных коэф-тов по экспозиции
     if data.eCheck:
         if exsp == 1: h *= data.nCoef
-        if exsp == 2: h *= data.eCoef
-        if exsp == 3: h *= data.sCoef
-        if exsp == 4: h *= data.wCoef
-        if exsp == -1: h *= data.pCoef
+        elif exsp == 2: h *= data.eCoef
+        elif exsp == 3: h *= data.sCoef
+        elif exsp == 4: h *= data.wCoef
+        elif exsp == -1: h *= data.pCoef
     return h
