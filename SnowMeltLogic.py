@@ -1,4 +1,3 @@
-from math import floor
 import os, dbf, shutil, numpy, RecordClasses as rc, xlrd, datetime as dt, numpy as np
 from tkinter.messagebox import showinfo
 
@@ -341,7 +340,7 @@ def calc(height, data): #выполнение расчета
             if (Tp+Tp_) < 0: Tp = 0 #обнуление суммы положительных темп., если она меньше суммы отриц. темп.
 
             Sp += PrMas[i].XmmT * (1 - l)
-            if FlagTp: dSp = Sp *(1 - l)
+            if FlagTp: dSp = round(Sp *(1 - l), 14)
             if Tp >= 0.2 * Spmaxr / data.wEqField: #проверка, началось ли таяние
                 if FlagTp:
                     dSpN = dSp
@@ -367,8 +366,9 @@ def calc(height, data): #выполнение расчета
                     if dSp < 0:
                         writeToResP((1 - l)*Spmaxr, 0, 0, 0, PrMas[i].time, CountDayP)
                         CountDayP  = CountDayP+1
-                if Hp> PrMas[i].XmmW * (1-l): Hp  = Hp-PrMas[i].XmmT*(1-l)
-                dSp += round(-Hp+PrMas[i].XmmT*(1-l), 14)
+                if Hp> PrMas[i].XmmW * (1-l):
+                    Hp = Hp -PrMas[i].XmmT*(1-l)
+                dSp = dSp - Hp + PrMas[i].XmmT * (1 - l)
 
             else:
                 if not FlagTp: writeToResP((1-l)*Spmaxr, dSp, dSp/dSpN*100, 0, PrMas[i].time, CountDayP)
@@ -400,7 +400,7 @@ def calc(height, data): #выполнение расчета
             elif PrMas[i].temp < 0: Tp_  = PrMas[i].temp
             if (Tp+Tp_) < 0: Tp  = 0
             Sl  = Sl+PrMas[i].XmmT*l
-            if FlagTp: dSl  = Sl*l
+            if FlagTp: dSl  = round(Sl*l, 14)
             if Tp >=(0.3*Slmaxr/data.wEqForest):
                 if FlagTp:
                     dSlN  = dSl
@@ -422,7 +422,8 @@ def calc(height, data): #выполнение расчета
                 if dSl<0:
                     writeToResL(l*Slmaxr, 0, 0, 0, PrMas[i].time, CountDayL)
                     CountDayL  = CountDayL+1
-                if Hl>(PrMas[i].XmmW*l): Hl  = Hl-PrMas[i].XmmW*l  
+                if Hl>(PrMas[i].XmmW*l): 
+                    Hl  = Hl-PrMas[i].XmmW*l  
                 dSl  = dSl-Hl+PrMas[i].XmmT*l
             else:
                 if not(FlagTp): writeToResL(l*Slmaxr, dSl, dSl/dSlN*100, 0, PrMas[i].time, CountDayL)
