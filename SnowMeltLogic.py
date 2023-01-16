@@ -205,24 +205,26 @@ def importData(data, station_id1, station_id2, station_id3, bass_id, height): #�
 
 def exportGroup(code, les, pole): #запись результата в файлы
     if fl == 1: #лес
-        for i in range(1, AllCountDayL):
-            AllResL[i].Sproc = round(AllResL[i].Sproc, 4);
-            AllResL[i].Xmm = round(AllResL[i].Xmm, 4);
-            AllResL[i].dS = round(AllResL[i].dS, 4);
-            AllResL[i].Smax = round(AllResL[i].Smax, 4);
-            rec = (code, AllResL[i].time, AllResL[i].Xmm, AllResL[i].Smax, AllResL[i].Sproc, AllResL[i].dS, 
-                    code.strip() + "_" + AllResL[i].time)
-            les.append(rec)
+        for i in range(1, AllCountDayL + 1):
+            if AllResL[i].time != "":
+                AllResL[i].Sproc = round(AllResL[i].Sproc, 4);
+                AllResL[i].Xmm = round(AllResL[i].Xmm, 4);
+                AllResL[i].dS = round(AllResL[i].dS, 4);
+                AllResL[i].Smax = round(AllResL[i].Smax, 4);
+                rec = (code, AllResL[i].time, AllResL[i].Xmm, AllResL[i].Smax, AllResL[i].Sproc, AllResL[i].dS, 
+                        code.strip() + "_" + AllResL[i].time)
+                les.append(rec)
     
     if fl == 0: #поле
         for i in range(1, AllCountDayP + 1):
-            AllResP[i].Sproc = round(AllResP[i].Sproc, 4);
-            AllResP[i].Xmm = round(AllResP[i].Xmm, 4);
-            AllResP[i].dS = round(AllResP[i].dS, 4);
-            AllResP[i].Smax = round(AllResP[i].Smax, 4);
-            rec = (code, AllResP[i].time, AllResP[i].Xmm, AllResP[i].Smax, AllResP[i].Sproc, AllResP[i].dS, 
-                    code.strip() + "_" + AllResP[i].time)
-            pole.append(rec)
+            if AllResP[i].time != "":
+                AllResP[i].Sproc = round(AllResP[i].Sproc, 4);
+                AllResP[i].Xmm = round(AllResP[i].Xmm, 4);
+                AllResP[i].dS = round(AllResP[i].dS, 4);
+                AllResP[i].Smax = round(AllResP[i].Smax, 4);
+                rec = (code, AllResP[i].time, AllResP[i].Xmm, AllResP[i].Smax, AllResP[i].Sproc, AllResP[i].dS, 
+                        code.strip() + "_" + AllResP[i].time)
+                pole.append(rec)
 
 def run(data): #инициализация расчетов
     global_init()
