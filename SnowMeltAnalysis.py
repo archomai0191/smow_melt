@@ -85,7 +85,7 @@ def calcMeltInfo(folder, result_type):
 
 def loadData(folder, result_type):
     global dFrame
-    if not Path(folder + "/results_" + result_type).exists:
+    if not Path(folder + "/results_" + result_type).exists():
         raise Exception (f"В папке нет данных по вариации коэффициента (путь к папке: {folder})")
     
     year = os.path.basename(folder)
@@ -95,7 +95,7 @@ def loadData(folder, result_type):
         except Exception: continue
         subFolderFull = folder + "/results_" + result_type + "/" + subFolder
         if os.path.isdir(subFolderFull):
-            if not Path(subFolderFull + "/les_group.dbf").exists and not Path(subFolderFull + "/pole_group.dbf").exists:
+            if not Path(subFolderFull + "/les_group.dbf").exists() and not Path(subFolderFull + "/pole_group.dbf").exists():
                 raise Exception(
                 f"Для одного из коэффициентов нет данных расчетов по лесу и/или полю (путь к папке: {subFolderFull})"
                 )
