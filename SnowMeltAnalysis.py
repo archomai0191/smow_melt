@@ -121,7 +121,7 @@ def collectDataset():
         if realDataFile == "": raise Exception("Сначала выберите файл с данными снегомерных маршрутов")
         foldersInit = []
         folders = directory_selector("Выберите папки с данными расчетов", foldersInit)
-        result_type = msg.askyesno(title="Выберите тип ландшафта", \
+        result_type = msg.askyesno(title="Выберите тип подстилающей поверхности", \
             message="Будут проводиться расчеты для леса?")
         result_type = "forest" if result_type else "field"
         print("Итоговый выбор: ", folders)
